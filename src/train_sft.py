@@ -16,6 +16,15 @@ from utils import (
     plot_loss
 )
 
+import os
+import debugpy
+
+# 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+debugpy.listen(5678)
+print("Waiting for debugger attach")
+debugpy.wait_for_client()
+debugpy.breakpoint()
+print('break on this line')
 
 def main():
 
@@ -23,7 +32,13 @@ def main():
     model_args, data_args, training_args, finetuning_args = prepare_args(stage="sft")
     dataset = prepare_data(model_args, data_args)
     model, tokenizer = load_pretrained(model_args, finetuning_args, training_args.do_train, stage="sft")
-    dataset = preprocess_data(dataset, tokenizer, data_args, training_args, stage="sft")
+    tokenizer_dataset_path = '/root/workspace_law/data_ChatGLM/tokenizer_dataset.hf'
+    if os.path.exists(tokenizer_dataset_path):
+        from datasets import load_from_disk
+        dataset = load_from_disk(tokenizer_dataset_path)
+    else:
+        dataset = preprocess_data(dataset, tokenizer, data_args, training_args, stage="sft")
+        dataset.save_to_disk(tokenizer_dataset_path)
     data_collator = DataCollatorForChatGLM(
         tokenizer=tokenizer,
         model=model,
