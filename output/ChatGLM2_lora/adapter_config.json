@@ -8,7 +8,7 @@
   "lora_dropout": 0.1,
   "modules_to_save": null,
   "peft_type": "LORA",
-  "r": 8,
+  "r": 32,
   "target_modules": [
     "query_key_value"
   ],
