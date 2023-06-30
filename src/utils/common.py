@@ -231,6 +231,7 @@ def load_pretrained(
         output_embedding_base_layer = model.transformer
         output_embedding_layer_name = "output_layer"
     else:
+        assert tokenizer.eos_token_id == 150005, "Please specify `use_v2` argument while using ChatGLM2-6B."
         output_embedding_base_layer = model
         output_embedding_layer_name = "lm_head"
 
@@ -314,12 +315,12 @@ def prepare_args(
     assert (not training_args.do_predict) or training_args.predict_with_generate, \
         "Please enable `predict_with_generate` to save model predictions."
 
+    assert not (finetuning_args.finetuning_type == "p_tuning" and training_args.fp16), \
+        "Please disable fp16 training while using the P-Tuning v2 method."
+
     if model_args.quantization_bit is not None:
         assert finetuning_args.finetuning_type != "full" and finetuning_args.finetuning_type != "freeze", \
             "Quantization is incompatible with the full-parameter and freeze tuning."
-
-        assert not (finetuning_args.finetuning_type == "p_tuning" and training_args.fp16), \
-            "FP16 training conflicts with quantized P-Tuning."
 
         if not training_args.do_train:
             logger.warning("Evaluating model in 4/8-bit mode may cause lower scores.")
